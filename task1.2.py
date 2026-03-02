@@ -93,7 +93,9 @@ def main():
     avg_impact_task = impact_da.mean()
 
     grids = [da.from_delayed(s[2], shape=(GRID_SIZE, GRID_SIZE), dtype = np.int8) for s in simulations]
-    all_grids = da.stack(grids, axis=0)
+    # all_grids = da.stack(grids, axis=0)
+    # to have more workers writting to  asingle chunk
+    all_grids = da.stack(grids, axis=0).rechunk({0: 50, 1: 800, 2: 800})
     ash_map = (all_grids == ASH).mean(axis=0)
 
     final_impact, final_ash_map = dask.compute(avg_impact_task, ash_map)
@@ -111,6 +113,6 @@ def main():
     plt.colorbar()
     plt.show()
     client.close()
-    
+
 if __name__ == "__main__":
     main()
